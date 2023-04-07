@@ -66,7 +66,7 @@ def import_data(lichess_data_file: str, output_path: str, sqlite_path: str) -> N
                 con.commit()
     con.close()
 
-def generate_boads_from_pgns(sqlite_path: str, max_elo: int):
+def generate_boards_from_pgns(sqlite_path: str, max_elo: int):
     con = sqlite3.connect(sqlite_path)
     cur = con.cursor()
 
@@ -98,5 +98,5 @@ def generate_boads_from_pgns(sqlite_path: str, max_elo: int):
             print(f"{games_saved} games saved in {delta.seconds} seconds. Should be done by {start_time + datetime.timedelta(seconds=seconds_to_complete)}")
 
 if __name__ == '__main__':
-    generate_boads_from_pgns("E:/chess.db", 1000)
-    #fire.Fire()
+    #generate_boads_from_pgns("E:/chess.db", 1000)
+    fire.Fire()
