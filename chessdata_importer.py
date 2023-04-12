@@ -76,27 +76,49 @@ def generate_boards_from_pgns(sqlite_path: str, max_elo: int):
     cur.execute("select id, moves from game where whiteelo < ? and blackelo < ?", (max_elo,max_elo))
 
     game_board_cur = con.cursor()
-    games_saved = 0
+    games_processed = 0
 
     start_time = datetime.datetime.now()
     for (id, pgn) in cur:
         moves = re.findall(r'\d\.{1,3}\s([A-Za-z0-9\-\=\+]+)', pgn)
-        board = chess.Board()
         move_num = 1
-        for move in moves:
-            board.push_san(move)
-            fen = board.fen()
-            fen_vec = bytearray(fen_to_vector(fen))
-            game_board_cur.execute('insert into gameposition (movenumber, fen, vector, gameid, movetohere) values (?,?,?,?,?)', (move_num, fen, fen_vec, id, move))
-            move_num += 1
-        games_saved += 1
 
-        if games_saved % 100 == 0:
+        # go through all the moves for this game to see if we encounter an illegal
+        # move before attempting to save. Shouldn't happen, but it seems to still. 
+        # this prevents us from saving up to an illegal move and having a spoiled game. 
+        to_inserts = []
+        next_moves = []
+
+        board = chess.Board()
+        try:
+            start_fen = board.fen()
+            start_fen_vec = bytearray(fen_to_vector(start_fen))
+            to_inserts.append((0, start_fen, start_fen_vec, id, None))
+
+            for move in moves:
+                board.push_san(move)
+                fen = board.fen()
+                fen_vec = bytearray(fen_to_vector(fen))
+                to_inserts.append((move_num, fen, fen_vec, id, move))
+                next_moves.append(move)
+                move_num += 1
+        except chess.IllegalMoveError:
+            to_inserts = []
+
+        for i in range(0, len(to_inserts)):
+            next_move = (None,)
+            if len(next_moves) > i + 1:
+                next_move = (next_moves[i],)
+            to_insert = next_move + to_inserts[i]
+            game_board_cur.execute('insert into gameposition (movefromhere, movenumber, fen, vector, gameid, movetohere) values (?,?,?,?,?, ?)', to_insert)
+        games_processed += 1
+
+        if games_processed % 100 == 0:
             con.commit()
             delta = datetime.datetime.now() - start_time
-            seconds_to_complete = delta.seconds * (number_of_games / (games_saved * 1.0))
-            print(f"{games_saved} games saved in {delta.seconds} seconds. Should be done by {start_time + datetime.timedelta(seconds=seconds_to_complete)}")
+            seconds_to_complete = delta.seconds * (number_of_games / (games_processed * 1.0))
+            print(f"{games_processed} games processed in {delta.seconds} seconds. Should be done by {start_time + datetime.timedelta(seconds=seconds_to_complete)}")
 
 if __name__ == '__main__':
-    #generate_boads_from_pgns("E:/chess.db", 1000)
+    #generate_boards_from_pgns("E:/chess.db", 1000)
     fire.Fire()
