@@ -88,6 +88,8 @@ def generate_boards_from_pgns(sqlite_path: str, max_elo: int):
         # this prevents us from saving up to an illegal move and having a spoiled game. 
         to_inserts = []
         next_moves = []
+        next_fens = []
+        from_square_to_square = []
 
         board = chess.Board()
         try:
@@ -96,21 +98,27 @@ def generate_boards_from_pgns(sqlite_path: str, max_elo: int):
             to_inserts.append((0, start_fen, start_fen_vec, id, None))
 
             for move in moves:
-                board.push_san(move)
+                move_data = board.push_san(move)
+                
                 fen = board.fen()
                 fen_vec = bytearray(fen_to_vector(fen))
                 to_inserts.append((move_num, fen, fen_vec, id, move))
+
                 next_moves.append(move)
+                next_fens.append(fen_vec)
+                from_square_to_square.append((move_data.from_square, move_data.to_square))
+
                 move_num += 1
         except chess.IllegalMoveError:
             to_inserts = []
 
         for i in range(0, len(to_inserts)):
-            next_move = (None,)
+            next_move_and_vec = (None,None, None, None)
             if len(next_moves) > i + 1:
-                next_move = (next_moves[i],)
-            to_insert = next_move + to_inserts[i]
-            game_board_cur.execute('insert into gameposition (movefromhere, movenumber, fen, vector, gameid, movetohere) values (?,?,?,?,?, ?)', to_insert)
+                from_square, to_square = from_square_to_square[i]
+                next_move_and_vec = (next_moves[i],next_fens[i], from_square, to_square)
+            to_insert = next_move_and_vec + to_inserts[i]
+            game_board_cur.execute('insert into gameposition (movefromhere, nextvector, fromsquare, tosquare, movenumber, fen, vector, gameid, movetohere) values (?,?,?,?,?,?,?,?,?)', to_insert)
         games_processed += 1
 
         if games_processed % 100 == 0:
