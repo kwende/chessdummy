@@ -1,10 +1,14 @@
 import fire
 import zstandard
+<<<<<<< HEAD
+import sqlite3
+=======
 import os
 import re
 import sqlite3
 import chess
 import datetime
+>>>>>>> 82d8652a3f1783c07203cc3287cc0418d301e369
 
 # https://python-zstandard.readthedocs.io/en/latest/decompressor.html
 
@@ -126,6 +130,8 @@ def generate_boards_from_pgns(sqlite_path: str, max_elo: int):
             delta = datetime.datetime.now() - start_time
             seconds_to_complete = delta.seconds * (number_of_games / (games_processed * 1.0))
             print(f"{games_processed} games processed in {delta.seconds} seconds. Should be done by {start_time + datetime.timedelta(seconds=seconds_to_complete)}")
+
+    
 
 if __name__ == '__main__':
     #generate_boards_from_pgns("E:/chess.db", 1000)
