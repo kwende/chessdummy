@@ -3,7 +3,7 @@ from itertools import cycle, islice
 
 import sqlite3
 
-class IteratableDataset(IterableDataset):
+class ChessDataset(IterableDataset):
     def __init__(self, db_path):
         self.db_path = db_path
         self.db_connection = sqlite3.connect(db_path)
@@ -26,7 +26,7 @@ class IteratableDataset(IterableDataset):
 
 if __name__ == "__main__":
     
-    ds = IteratableDataset('e:/chess.db')
+    ds = ChessDataset('e:/chess.db')
     loader = DataLoader(ds, batch_size=4)
 
     for batch in islice(loader, 8):
