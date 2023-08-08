@@ -14,20 +14,16 @@ class ChessDataset(IterableDataset):
     
     def __next__(self):
         while True:
-            self.cursor.execute("select Fen from GamePosition where rowid = abs(random()) % (select (select max(rowid) from GamePosition)+1);")
+            self.cursor.execute("select Fen,Vector,FromSquare,ToSquare from GamePosition where rowid = abs(random()) % (select (select max(rowid) from GamePosition)+1);")
 
-            result = self.cursor.fetchone()
-            if result is not None:
-                random_value = result[0]
-                break
+            fen, vector, from_square, to_square = self.cursor.fetchone()
+            return fen, vector, from_square, to_square
 
-        return random_value
-    
 
 if __name__ == "__main__":
     
     ds = ChessDataset('e:/chess.db')
-    loader = DataLoader(ds, batch_size=4)
+    loader = DataLoader(ds, batch_size=1)
 
-    for batch in islice(loader, 8):
-        print(batch)
+    for fen, x, y, z in loader:
+        print(x)

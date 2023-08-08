@@ -1,14 +1,11 @@
 import fire
 import zstandard
-<<<<<<< HEAD
 import sqlite3
-=======
 import os
 import re
 import sqlite3
 import chess
 import datetime
->>>>>>> 82d8652a3f1783c07203cc3287cc0418d301e369
 
 # https://python-zstandard.readthedocs.io/en/latest/decompressor.html
 
