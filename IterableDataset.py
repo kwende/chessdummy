@@ -17,6 +17,8 @@ class ChessDataset(IterableDataset):
             self.cursor.execute("select Fen,Vector,FromSquare,ToSquare from GamePosition where rowid = abs(random()) % (select (select max(rowid) from GamePosition)+1);")
 
             fen, vector, from_square, to_square = self.cursor.fetchone()
+            if fen is None or vector is None or from_square is None or to_square is None: 
+                continue
             return fen, vector, from_square, to_square
 
 
