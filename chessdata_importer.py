@@ -1,14 +1,11 @@
 import fire
 import zstandard
-<<<<<<< HEAD
 import sqlite3
-=======
 import os
 import re
 import sqlite3
 import chess
 import datetime
->>>>>>> 82d8652a3f1783c07203cc3287cc0418d301e369
 
 # https://python-zstandard.readthedocs.io/en/latest/decompressor.html
 
@@ -118,7 +115,7 @@ def generate_boards_from_pgns(sqlite_path: str, max_elo: int):
 
         for i in range(0, len(to_inserts)):
             next_move_and_vec = (None,None, None, None)
-            if len(next_moves) > i + 1:
+            if len(next_moves) > i:
                 from_square, to_square = from_square_to_square[i]
                 next_move_and_vec = (next_moves[i],next_fens[i], from_square, to_square)
             to_insert = next_move_and_vec + to_inserts[i]
@@ -134,5 +131,5 @@ def generate_boards_from_pgns(sqlite_path: str, max_elo: int):
     
 
 if __name__ == '__main__':
-    #generate_boards_from_pgns("E:/chess.db", 1000)
-    fire.Fire()
+    generate_boards_from_pgns("E:/chess.db", 1000)
+    #fire.Fire()
