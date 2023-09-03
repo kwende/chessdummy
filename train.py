@@ -12,8 +12,9 @@ class CNN(nn.Module):
         self.cnn1 = nn.Conv2d(in_channels=1, out_channels=64, kernel_size=2, padding=2)
         self.cnn2 = nn.Conv2d(in_channels=64, out_channels=128, kernel_size=2, padding=2)
         self.cnn3 = nn.Conv2d(in_channels=128, out_channels=256, kernel_size=2, padding=2)
-        self.fc1 = nn.Linear(256 * 8 * 8, 256)
-        self.fc2 = nn.Linear(256, 2)
+        self.global_pooling = nn.AdaptiveAvgPool2d(1)
+        self.fc1 = nn.Linear(256, 10)
+        self.fc2 = nn.Linear(10, 64 + 64)
 
     def forward(self, x):
         x = self.cnn1(x)
@@ -22,6 +23,8 @@ class CNN(nn.Module):
         x = torch.relu(x)
         x = self.cnn3(x)
         x = torch.relu(x)
+        x = self.global_pooling(x)
+        x = torch.squeeze(x)
         x = self.fc1(x)
         x = torch.relu(x)
         x = self.fc2(x)
@@ -47,7 +50,7 @@ N_test=5000
 COST=0
 
 def train_model(n_epochs):
-    for epoch in range(n_epochs):
+    for _ in range(n_epochs):
         COST=0
         for x, y in train_loader:
             optimizer.zero_grad()
