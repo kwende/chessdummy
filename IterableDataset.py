@@ -6,18 +6,29 @@ import numpy as np
 
 class ChessDataset(IterableDataset):
     def __init__(self, db_path):
+        self.results = []
         self.db_path = db_path
         self.db_connection = sqlite3.connect(db_path)
         self.cursor = self.db_connection.cursor()
+        self.cursor.execute("select min(id) from GamePosition")
+        self.min_value = self.cursor.fetchone()[0]
+        self.cursor.execute("select max(id) from GamePosition")
+        self.max_value = self.cursor.fetchone()[0]
 
     def __iter__(self):
         return self
     
     def __next__(self):
-        while True:
-            self.cursor.execute("select Vector,FromSquare,ToSquare from GamePosition where rowid = ((abs(random()) % ((select max(rowid) from GamePosition) - (select min(Id) from GamePosition)))  + (select min(Id) from GamePosition))")
 
-            vector, from_square, to_square = self.cursor.fetchone()
+        while True:
+            if len(self.results) == 0:
+                ids = [str(x) for x in np.random.randint(self.min_value, self.max_value+1, 1000)]
+                resultString = ','.join(ids)
+                self.cursor.execute(f"select Vector,FromSquare,ToSquare from GamePosition where id in ({resultString})")
+                for result in self.cursor.fetchall():
+                    self.results.append(result)
+
+            vector, from_square, to_square = self.results.pop(0)
             if vector is None or from_square is None or to_square is None: 
                 continue
             answer_vec = np.zeros((128,))
@@ -33,3 +44,5 @@ if __name__ == "__main__":
 
     for x, y in loader:
         print(x)
+
+    print('done')

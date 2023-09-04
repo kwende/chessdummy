@@ -6,6 +6,7 @@ import numpy as np
 import IterableDataset
 from torch.utils.tensorboard import SummaryWriter
 writer = SummaryWriter()
+import datetime
 
 class CNN(nn.Module):
 
@@ -45,7 +46,7 @@ optimizer = torch.optim.SGD(model.parameters(), lr = learning_rate)
 
 chess_dataset = IterableDataset.ChessDataset("e:/chess.db")
 
-train_loader = torch.utils.data.DataLoader(dataset=chess_dataset, batch_size=100)
+train_loader = torch.utils.data.DataLoader(dataset=chess_dataset, batch_size=1000)
 test_loader = torch.utils.data.DataLoader(dataset=chess_dataset, batch_size=5000)
 
 # Train the model
@@ -58,7 +59,6 @@ COST=0
 
 def train_model(n_epochs):
     for epoch in range(n_epochs):
-        print(f"Epoch {epoch}")
         #COST=0
         best_cost = -1.0
         for x, y in train_loader:
@@ -69,9 +69,12 @@ def train_model(n_epochs):
             loss = criterion(z, y)
             writer.add_scalar("Loss/train", loss, epoch)
             loss.backward()
+            start = datetime.datetime.now()
             optimizer.step()
-            if best_cost == -1 or loss.data < best_cost:
-                best_cost = loss.data
+            end = datetime.datetime.now()
+            cost = loss.data
+            if best_cost == -1 or cost < best_cost:
+                best_cost = cost
                 torch.save({
                     'model_state_dict': model.state_dict(),
                     'optimizer_state_dict': optimizer.state_dict(),
