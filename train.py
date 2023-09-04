@@ -4,14 +4,18 @@ import torchvision.transforms as transforms
 import torchvision.datasets as dsets
 import numpy as np
 import IterableDataset
+from torch.utils.tensorboard import SummaryWriter
+writer = SummaryWriter()
 
 class CNN(nn.Module):
 
     def __init__(self):
         super(CNN, self).__init__()
+        # NOTE: taking it down to 2 convd layers made it bad. But, removing the # of channels seemed to help per layer
         self.cnn1 = nn.Conv2d(in_channels=1, out_channels=64, kernel_size=2, padding=2)
-        self.cnn2 = nn.Conv2d(in_channels=64, out_channels=128, kernel_size=2, padding=2)
-        self.cnn3 = nn.Conv2d(in_channels=128, out_channels=256, kernel_size=2, padding=2)
+        self.cnn2 = nn.Conv2d(in_channels=64, out_channels=96, kernel_size=2, padding=2)
+        self.cnn3 = nn.Conv2d(in_channels=96, out_channels=128, kernel_size=2, padding=2)
+        self.cnn4 = nn.Conv2d(in_channels=128, out_channels=256, kernel_size=2, padding=2)
         self.global_pooling = nn.AdaptiveAvgPool2d(1)
         self.fc1 = nn.Linear(256, 10)
         self.fc2 = nn.Linear(10, 64 + 64)
@@ -23,6 +27,8 @@ class CNN(nn.Module):
         x = torch.relu(x)
         x = self.cnn3(x)
         x = torch.relu(x)
+        x = self.cnn4(x)
+        x = torch.relu(x)
         x = self.global_pooling(x)
         x = torch.squeeze(x)
         x = self.fc1(x)
@@ -33,7 +39,7 @@ class CNN(nn.Module):
 model = CNN()
 
 criterion = nn.CrossEntropyLoss()
-learning_rate = 0.1
+learning_rate = 0.01
 optimizer = torch.optim.SGD(model.parameters(), lr = learning_rate)
 
 chess_dataset = IterableDataset.ChessDataset("e:/chess.db")
@@ -43,19 +49,21 @@ test_loader = torch.utils.data.DataLoader(dataset=chess_dataset, batch_size=5000
 
 # Train the model
 
-n_epochs=3
+n_epochs=1000
 cost_list=[]
 accuracy_list=[]
 N_test=5000
 COST=0
 
 def train_model(n_epochs):
-    for _ in range(n_epochs):
+    for epoch in range(n_epochs):
+        print(f"Epoch {epoch}")
         COST=0
         for x, y in train_loader:
             optimizer.zero_grad()
             z = model(x)
             loss = criterion(z, y)
+            writer.add_scalar("Loss/train", loss, epoch)
             loss.backward()
             optimizer.step()
             COST+=loss.data
@@ -71,3 +79,4 @@ def train_model(n_epochs):
         accuracy_list.append(accuracy)
      
 train_model(n_epochs)
+writer.flush()
