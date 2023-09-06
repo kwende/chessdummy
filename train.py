@@ -19,7 +19,7 @@ class CNN(nn.Module):
         self.cnn4 = nn.Conv2d(in_channels=128, out_channels=256, kernel_size=2, padding=2)
         self.global_pooling = nn.AdaptiveAvgPool2d(1)
         self.fc1 = nn.Linear(256, 10)
-        self.fc2 = nn.Linear(10, 64 + 64)
+        self.fc2 = nn.Linear(10, 64)
 
     def forward(self, x):
         x = self.cnn1(x)
@@ -46,7 +46,7 @@ optimizer = torch.optim.SGD(model.parameters(), lr = learning_rate)
 
 chess_dataset = IterableDataset.ChessDataset("e:/chess.db")
 
-train_loader = torch.utils.data.DataLoader(dataset=chess_dataset, batch_size=1000)
+train_loader = torch.utils.data.DataLoader(dataset=chess_dataset, batch_size=500)
 test_loader = torch.utils.data.DataLoader(dataset=chess_dataset, batch_size=5000)
 
 # Train the model
